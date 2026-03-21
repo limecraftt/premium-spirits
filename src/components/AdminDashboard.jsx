@@ -270,7 +270,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Stats */}
+        {/* Stats — only show on drinks tab */}
+        {activeTab === 'drinks' && (
         <div className="stats-grid">
           {[
             { label: 'Total', value: stats.total, icon: '🍸', color: '#1a1535' },
@@ -287,6 +288,7 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
+        )}
 
         {/* QR Tab */}
         {activeTab === 'qr' && bar && (
