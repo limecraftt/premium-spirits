@@ -270,30 +270,85 @@ export default function AdminDashboard() {
 
         {/* QR Tab */}
         {activeTab === 'qr' && bar && (
-          <div>
-            <div style={{ marginBottom: 20 }}>
-              <h2 className="syne" style={{ fontSize: 20, fontWeight: 700, color: '#1a1535', marginBottom: 4 }}>Your QR Codes</h2>
-              <p style={{ color: '#9ca3af', fontSize: 13 }}>Print and place on tables for customers to scan</p>
+          <div style={{ maxWidth: 480, margin: '0 auto' }}>
+            <div style={{ marginBottom: 24, textAlign: 'center' }}>
+              <h2 className="syne" style={{ fontSize: 22, fontWeight: 700, color: '#1a1535', marginBottom: 6 }}>Your Menu QR Code</h2>
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>Print this and place it on your tables. Customers scan to see your full drinks menu.</p>
             </div>
-            <div className="qr-grid">
-              <div style={{ background: '#fff', border: '2px solid #7c3aed', borderRadius: 20, padding: 20, textAlign: 'center', boxShadow: '0 4px 20px rgba(124,58,237,0.1)' }}>
-                <div style={{ fontSize: 10, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>Full Menu</div>
-                <div style={{ background: '#fff', borderRadius: 10, padding: 8, display: 'inline-block', marginBottom: 12, border: '1px solid #ede9fe' }}>
-                  <QRDisplay text={menuUrl} size={130} />
-                </div>
-                <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>{stats.available} drinks</p>
-                <p style={{ fontSize: 9, color: '#c4b5fd', fontFamily: 'monospace', wordBreak: 'break-all' }}>{menuUrl}</p>
+
+            <div style={{ background: '#fff', border: '2px solid #7c3aed', borderRadius: 24, padding: '32px 24px', textAlign: 'center', boxShadow: '0 8px 40px rgba(124,58,237,0.12)' }}>
+              {/* Bar name */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: 14, fontFamily: 'Syne', margin: '0 auto 10px' }}>MB</div>
+                <p className="syne" style={{ fontSize: 18, fontWeight: 700, color: '#1a1535', margin: 0 }}>{bar.name}</p>
+                <p style={{ fontSize: 12, color: '#9ca3af', margin: '4px 0 0' }}>Drinks Menu</p>
               </div>
-              {[...new Set(drinks.map(d => d.category))].map(cat => (
-                <div key={cat} style={{ background: '#fff', border: '1px solid #ede9fe', borderRadius: 20, padding: 16, textAlign: 'center', transition: 'border-color 0.2s' }}
-                  onMouseOver={e => e.currentTarget.style.borderColor = '#c4b5fd'} onMouseOut={e => e.currentTarget.style.borderColor = '#ede9fe'}>
-                  <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600, marginBottom: 10 }}>{cat}</div>
-                  <div style={{ background: '#fff', borderRadius: 8, padding: 6, display: 'inline-block', marginBottom: 8, border: '1px solid #ede9fe' }}>
-                    <QRDisplay text={`${menuUrl}?cat=${encodeURIComponent(cat)}`} size={90} />
-                  </div>
-                  <p style={{ fontSize: 11, color: '#9ca3af' }}>{drinks.filter(d => d.category === cat && d.available).length} drinks</p>
+
+              {/* QR Code */}
+              <div id="qr-download-area" style={{ background: '#fff', borderRadius: 16, padding: 20, display: 'inline-block', border: '1px solid #ede9fe', marginBottom: 20 }}>
+                <QRDisplay text={menuUrl} size={200} />
+              </div>
+
+              {/* URL */}
+              <div style={{ background: '#f5f3ff', border: '1px solid #ede9fe', borderRadius: 10, padding: '10px 16px', marginBottom: 24 }}>
+                <p style={{ fontSize: 11, color: '#9ca3af', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: 1 }}>Scan to visit</p>
+                <p style={{ fontSize: 13, color: '#7c3aed', fontFamily: 'monospace', margin: 0, wordBreak: 'break-all' }}>{menuUrl}</p>
+              </div>
+
+              {/* Stats */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 24 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: '#1a1535', margin: 0 }} className="syne">{stats.available}</p>
+                  <p style={{ fontSize: 11, color: '#9ca3af', margin: '2px 0 0' }}>Live drinks</p>
                 </div>
-              ))}
+                <div style={{ width: 1, background: '#ede9fe' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: '#1a1535', margin: 0 }} className="syne">{stats.categories}</p>
+                  <p style={{ fontSize: 11, color: '#9ca3af', margin: '2px 0 0' }}>Categories</p>
+                </div>
+              </div>
+
+              {/* Download Button */}
+              <button
+                onClick={() => {
+                  const canvas = document.querySelector('#qr-download-area canvas');
+                  if (!canvas) return;
+                  // Create a larger canvas with padding and bar name
+                  const pad = 40;
+                  const labelH = 60;
+                  const out = document.createElement('canvas');
+                  out.width = canvas.width + pad * 2;
+                  out.height = canvas.height + pad * 2 + labelH;
+                  const ctx = out.getContext('2d');
+                  ctx.fillStyle = '#fff';
+                  ctx.fillRect(0, 0, out.width, out.height);
+                  // Bar name
+                  ctx.fillStyle = '#1a1535';
+                  ctx.font = 'bold 18px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.fillText(bar.name, out.width / 2, 30);
+                  ctx.fillStyle = '#9ca3af';
+                  ctx.font = '13px sans-serif';
+                  ctx.fillText('Scan for drinks menu', out.width / 2, 52);
+                  // QR
+                  ctx.drawImage(canvas, pad, labelH, canvas.width, canvas.height);
+                  // URL
+                  ctx.fillStyle = '#7c3aed';
+                  ctx.font = '11px monospace';
+                  ctx.fillText(menuUrl, out.width / 2, out.height - 12);
+                  // Download
+                  const a = document.createElement('a');
+                  a.download = `${bar.slug}-menu-qr.png`;
+                  a.href = out.toDataURL('image/png');
+                  a.click();
+                }}
+                className="purple-btn"
+                style={{ width: '100%', padding: '13px', borderRadius: 12, fontSize: 14, justifyContent: 'center' }}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Download QR Code
+              </button>
+
+              <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 12 }}>PNG format · Ready to print</p>
             </div>
           </div>
         )}
