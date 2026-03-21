@@ -93,21 +93,15 @@ export default function MenuPage() {
       <div style={{ background: 'rgba(250,249,255,0.97)', borderBottom: '1px solid #ede9fe', position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', boxShadow: '0 1px 12px rgba(124,58,237,0.06)' }}>
         <div style={{ maxWidth: 960, margin: '0 auto', padding: '14px 16px 0' }}>
 
-          {/* Bar name + count */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div>
-              {loading
-                ? <div style={{ height: 24, width: 140, background: '#ede9fe', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
-                : <>
-                    <h1 className="syne" style={{ fontSize: 'clamp(17px, 5vw, 22px)', fontWeight: 700, color: '#1a1535', lineHeight: 1 }}>{bar?.name}</h1>
-                    {bar?.location && <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>{bar.location}</p>}
-                  </>
-              }
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 2 }}>Menu</div>
-              <div style={{ fontSize: 13, color: '#7c3aed', fontWeight: 600, marginTop: 2 }}>{filtered.length} items</div>
-            </div>
+          {/* Bar name — centered, no item count */}
+          <div style={{ textAlign: 'center', marginBottom: 14 }}>
+            {loading
+              ? <div style={{ height: 24, width: 140, background: '#ede9fe', borderRadius: 8, animation: 'pulse 1.5s infinite', margin: '0 auto' }} />
+              : <>
+                  <h1 className="syne" style={{ fontSize: 'clamp(20px, 5vw, 26px)', fontWeight: 700, color: '#1a1535', lineHeight: 1 }}>{bar?.name}</h1>
+                  {bar?.location && <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>{bar.location}</p>}
+                </>
+            }
           </div>
 
           {/* Search */}
