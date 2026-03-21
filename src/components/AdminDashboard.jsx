@@ -45,6 +45,8 @@ export default function AdminDashboard() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('drinks');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [newBarName, setNewBarName] = useState('');
+  const [savingName, setSavingName] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => { init(); }, []);
@@ -120,6 +122,19 @@ export default function AdminDashboard() {
     catch { showToast('Update failed.', 'error'); }
   };
   const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = '/login'; };
+
+  const handleBarNameUpdate = async () => {
+    if (!newBarName.trim()) return showToast('Bar name cannot be empty.', 'error');
+    setSavingName(true);
+    try {
+      const { error } = await supabase.from('bars').update({ name: newBarName.trim() }).eq('id', bar.id);
+      if (error) throw error;
+      setBar(b => ({ ...b, name: newBarName.trim() }));
+      setNewBarName('');
+      showToast('Bar name updated!');
+    } catch (e) { showToast(e.message || 'Update failed.', 'error'); }
+    finally { setSavingName(false); }
+  };
 
   const filtered = drinks.filter(d => (filterCat === 'All' || d.category === filterCat) && d.name.toLowerCase().includes(search.toLowerCase()));
   const stats = { total: drinks.length, available: drinks.filter(d => d.available).length, hidden: drinks.filter(d => !d.available).length, categories: new Set(drinks.map(d => d.category)).size };
@@ -220,24 +235,29 @@ export default function AdminDashboard() {
                 <span className="nav-preview-text">Preview</span>
               </a>
             )}
-            <button onClick={() => setActiveTab(activeTab === 'qr' ? 'drinks' : 'qr')} className="purple-btn" style={{ padding: '7px 12px', borderRadius: 10, fontSize: 12 }}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5A2.5 2.5 0 0119 13a2.5 2.5 0 01-2.5 2.5A2.5 2.5 0 0114 13a2.5 2.5 0 012.5-2.5zM9 3.5A2.5 2.5 0 016.5 6 2.5 2.5 0 014 3.5 2.5 2.5 0 016.5 1 2.5 2.5 0 019 3.5zM9 20.5A2.5 2.5 0 016.5 23 2.5 2.5 0 014 20.5a2.5 2.5 0 012.5-2.5 2.5 2.5 0 012.5 2.5z" /></svg>
-              <span className="nav-qr-text">{activeTab === 'qr' ? 'Drinks' : 'QR'}</span>
-            </button>
-            <button onClick={handleLogout}
-              style={{ padding: '7px 12px', borderRadius: 10, fontSize: 12, background: 'none', border: '1.5px solid #e5e7eb', color: '#9ca3af', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600 }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.color = '#dc2626'; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#9ca3af'; }}>
-              Logout
-            </button>
           </div>
+        </div>
+
+        {/* Tab Bar */}
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 16px', display: 'flex', gap: 0, borderTop: '1px solid #f3f4f6' }}>
+          {[
+            { id: 'drinks', label: 'Drinks', icon: <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
+            { id: 'qr', label: 'QR Code', icon: <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5A2.5 2.5 0 0119 13a2.5 2.5 0 01-2.5 2.5A2.5 2.5 0 0114 13a2.5 2.5 0 012.5-2.5z" /></svg> },
+            { id: 'settings', label: 'Settings', icon: <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', fontSize: 12, fontWeight: 600, fontFamily: 'Inter', cursor: 'pointer', background: 'none', border: 'none', borderBottom: activeTab === tab.id ? '2px solid #7c3aed' : '2px solid transparent', color: activeTab === tab.id ? '#7c3aed' : '#9ca3af', transition: 'all 0.15s', marginBottom: -1 }}>
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
         </div>
       </nav>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 40px' }}>
 
         {/* Menu URL Banner */}
-        {bar && (
+        {bar && activeTab !== 'settings' && (
           <div className="menu-banner">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <div style={{ width: 26, height: 26, background: '#ede9fe', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -349,6 +369,75 @@ export default function AdminDashboard() {
               </button>
 
               <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 12 }}>PNG format · Ready to print</p>
+            </div>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && bar && (
+          <div style={{ maxWidth: 560 }}>
+            <div style={{ marginBottom: 24 }}>
+              <h2 className="syne" style={{ fontSize: 22, fontWeight: 700, color: '#1a1535', marginBottom: 4 }}>Settings</h2>
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>Manage your bar profile and account</p>
+            </div>
+
+            {/* Bar Profile Card */}
+            <div style={{ background: '#fff', border: '1px solid #ede9fe', borderRadius: 20, padding: 24, marginBottom: 16, boxShadow: '0 2px 12px rgba(124,58,237,0.04)' }}>
+              <h3 className="syne" style={{ fontSize: 15, fontWeight: 700, color: '#1a1535', marginBottom: 4 }}>Bar Profile</h3>
+              <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>Update your bar's display name</p>
+
+              {/* Current name */}
+              <div style={{ background: '#f5f3ff', border: '1px solid #ede9fe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: 12, fontFamily: 'Syne', flexShrink: 0 }}>
+                  {bar.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1535', margin: 0 }}>{bar.name}</p>
+                  <p style={{ fontSize: 11, color: '#9ca3af', margin: '2px 0 0', fontFamily: 'monospace' }}>mybar.com/menu/{bar.slug}</p>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>New Bar Name</label>
+                <input
+                  value={newBarName}
+                  onChange={e => setNewBarName(e.target.value)}
+                  placeholder={bar.name}
+                  className="admin-input"
+                  onKeyDown={e => e.key === 'Enter' && handleBarNameUpdate()}
+                />
+              </div>
+              <button onClick={handleBarNameUpdate} disabled={savingName || !newBarName.trim()} className="purple-btn" style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13 }}>
+                {savingName && <svg className="spin" width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.25 }}/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" style={{ opacity: 0.75 }}/></svg>}
+                {savingName ? 'Saving...' : 'Save Name'}
+              </button>
+              <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 10 }}>Note: your menu URL slug won't change when you rename your bar.</p>
+            </div>
+
+            {/* Account Card */}
+            <div style={{ background: '#fff', border: '1px solid #ede9fe', borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(124,58,237,0.04)' }}>
+              <h3 className="syne" style={{ fontSize: 15, fontWeight: 700, color: '#1a1535', marginBottom: 4 }}>Account</h3>
+              <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>Manage your login and session</p>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: '#1a1535', margin: 0 }}>Email</p>
+                  <p style={{ fontSize: 12, color: '#9ca3af', margin: '2px 0 0' }}>{bar.email}</p>
+                </div>
+                <span style={{ fontSize: 11, background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', padding: '3px 10px', borderRadius: 999, fontWeight: 600 }}>Active</span>
+              </div>
+
+              <div style={{ paddingTop: 16 }}>
+                <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Signing out will end your current session.</p>
+                <button
+                  onClick={handleLogout}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, fontSize: 13, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, transition: 'all 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.background = '#fee2e2'}
+                  onMouseOut={e => e.currentTarget.style.background = '#fef2f2'}>
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                  Sign Out
+                </button>
+              </div>
             </div>
           </div>
         )}
